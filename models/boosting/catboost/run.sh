@@ -1,0 +1,1 @@
+python ensemble.py cb_dayfold_sigmoid.csv,cb_19_300_0.73763.csv,cb_19_clk_300_0.74054.csv -m sigmoid -w 0.7,0.2,0.1 -o catboost_sig.csv --id_name row_id --target_name is_installed
