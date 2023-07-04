@@ -218,7 +218,7 @@ submission = pd.DataFrame(columns=["row_id", "is_clicked", "is_installed"])
 submission["row_id"] = test[["f_0"]].copy().rename(columns={"f_0": "row_id"})
 submission["is_clicked"] = 0
 
-for i in [50, 58, 65]:
+for i in [50, 65]:
     print(f"date: {i}")
     train = df_all[df_all.f_1 != i]
     val = df_all[df_all.f_1 == i]
@@ -260,7 +260,7 @@ for i in [50, 58, 65]:
     submission[f"date{i}"] = clf.predict_proba(test[X_columns])[:, 1]
 
 submission["is_installed"] = sigmoid_ensemble(
-    [0.6, 0.15, 0.25], submission[[f"date{i}" for i in [50, 58, 65]]]
+    [0.5, 0.5], submission[[f"date{i}" for i in [50, 65]]]
 )
 submission[["row_id", "is_clicked", "is_installed"]].to_csv(
     f".cb_dayfold.csv", index=False, sep="\t"
