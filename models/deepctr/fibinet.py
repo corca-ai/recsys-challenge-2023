@@ -1,15 +1,15 @@
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
 import scipy as sp
-from sklearn.model_selection import KFold
-
 import torch
 from deepctr_torch.callbacks import EarlyStopping, ModelCheckpoint
 from deepctr_torch.inputs import DenseFeat, SparseFeat, get_feature_names
-from deepctr_torch.models import DeepFM, ESMM, AutoInt, FiBiNET
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from deepctr_torch.models import ESMM, AutoInt, DeepFM, FiBiNET
 from pytorch_optimizer import MADGRAD, CosineAnnealingWarmRestarts
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
 
 

@@ -2,14 +2,15 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from typing import Tuple, Dict, List
 import random
-import pandas as pd
+from typing import Dict, List, Tuple
+
 import numpy as np
-from tqdm import tqdm
+import pandas as pd
 from catboost import CatBoostClassifier
 from sklearn.metrics import log_loss
 from sklearn.model_selection import StratifiedKFold
+from tqdm import tqdm
 
 # set seed
 seed = 269
