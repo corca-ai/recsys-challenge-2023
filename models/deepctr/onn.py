@@ -185,6 +185,7 @@ def preprocess():
             73,
         ]
     ]:
+
         # Catch IQR outliers
         q1 = train[col].quantile(0.25)
         q3 = train[col].quantile(0.75)
@@ -340,17 +341,6 @@ def normalized_binary_cross_entropy_loss(
     p = y_true.sum().float() / len(y_true)
     loss = -loss / (p * torch.log(p) + (1 - p) * torch.log(1 - p))
     return loss
-
-
-# # def alpha_loss(y_pred, y, reduction):
-#     alpha = 0.5
-#     # ctr_loss = normalized_binary_cross_entropy_loss(
-#     #     y_pred[:, 0], y[:, 0], reduction=reduction
-#     # )
-#     ctcvr_loss = normalized_binary_cross_entropy_loss(
-#         y_pred[:, 1], y[:, 1], reduction=reduction
-#     )
-#     return ctr_loss * alpha + ctcvr_loss * (1 - alpha)
 
 
 def fit_and_predict(

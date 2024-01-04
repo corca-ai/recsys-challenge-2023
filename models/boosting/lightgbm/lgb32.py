@@ -332,21 +332,14 @@ def main():
         for data in [train, val, test]:
             data[k] = data[k] // v
 
-    loo_columns = []  # ["f_2", "f_4", "f_6", "f_15", "f_18"]
+    loo_columns = []
     bin_columns = ["f_52", "f_53", "f_54", "f_55", "f_56", "f_57"]
     combine_columns = [
-        # ["f_3", "f_4"],
-        # ["f_8", "f_13", "f_14", "f_15"],
         ["f_44", "f_45", "f_46", "f_47"],
         ["f_48", "f_49", "f_50"],
-        # ["f_52", "f_53", "f_54"],
-        # ["f_55", "f_56", "f_57"],
-        # ["f_71", "f_72", "f_73"],
-        # ["f_74", "f_75", "f_76"],
-        # ["f_77", "f_78", "f_79"],
     ]
     nuniq_columns = []
-    group_columns = []  # ["f_6", "f_15", "f_18"]
+    group_columns = []
     te_columns = [
         "f_2",
         "f_3",
@@ -361,7 +354,7 @@ def main():
         "f_75",
         "f_76",
     ]
-    freq_columns = []  # ["f_2", "f_4", "f_6", "f_19", "f_42"]
+    freq_columns = []
     remove_columns = [
         "f_7",
         "f_8",

@@ -124,9 +124,6 @@ for idx in [30, 31, 43, 51, 58, 59, 64, 65, 66, 67, 68, 69, 70]:
         f_group_sliced = sliced[["f_6", "f_51"]].groupby("f_6").mean().to_dict()["f_51"]
         train["f_51"] = train["f_51"].fillna(train["f_6"].map(f_group))
         test["f_51"] = test["f_51"].fillna(test["f_6"].map(f_group_sliced))
-        # for data in [train, test]:
-        #     data["f_51"] = data["f_51"].fillna(data["f_6"].map(f_group))
-        # data["f_51"] = data["f_51"].fillna(data["f_51"].median())
     if idx == 67:
         f_group = train[["f_21", "f_67"]].groupby("f_21").median().to_dict()["f_67"]
         f_group_sliced = (
@@ -134,13 +131,6 @@ for idx in [30, 31, 43, 51, 58, 59, 64, 65, 66, 67, 68, 69, 70]:
         )
         train["f_67"] = train["f_67"].fillna(train["f_21"].map(f_group))
         test["f_67"] = test["f_67"].fillna(test["f_21"].map(f_group_sliced))
-        # for data in [train, test]:
-        #     data[f"f_{idx}"] = data[f"f_{idx}"].fillna(data["f_21"].map(f_group))
-        # data[f"f_{idx}"] = data[f"f_{idx}"].fillna(data[f"f_21"].median())
-    # if idx == 69:
-    #     f_group = train[["f_2", "f_67"]].groupby("f_2").mean().to_dict()["f_67"]
-    #     for data in [train, val, test]:
-    #         data[f"f_{idx}"] = data[f"f_{idx}"].fillna(data[f"f_2"].map(f_group))
     if idx in [30, 31]:
         for data in [train, test]:
             data[f"f_{idx}"] = data[f"f_{idx}"].fillna(2)
