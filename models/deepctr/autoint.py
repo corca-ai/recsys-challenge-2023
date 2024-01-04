@@ -288,21 +288,6 @@ def preprocess():
     train, test, _, feat_list = frequency_encoder(train, test, cols=freq_features)
     dense_features += feat_list
 
-    # # cyclic encode f_9, f_11
-    # for col, max_val in zip(["f_9", "f_11"], [7, 24]):
-    #     sorted = df[col].value_counts().index[::-1]
-    #     sorted_dict = {k: v for v, k in enumerate(sorted)}
-    #     df[f"{col}"] = df[col].map(sorted_dict)
-
-    #     feat_name = f"{col}-sin"
-    #     df[feat_name] = np.sin(2 * np.pi * df[f"{col}"] / max_val)
-
-    #     feat_name = f"{col}-cos"
-    #     df[feat_name] = np.cos(2 * np.pi * df[f"{col}"] / max_val)
-
-    #     sparse_features.append(f"{col}-sin")
-    #     sparse_features.append(f"{col}-cos")
-
     # 1.Label Encoding for sparse features,and do simple Transformation for dense features
     for feat in tqdm(sparse_features):
         lbe = LabelEncoder()
@@ -410,11 +395,6 @@ def fit_and_predict(
             l2_reg_embedding=0,
         )
 
-        # model.compile(
-        #     MADGRAD(model.parameters(), lr=0.0001),
-        #     # alpha_loss,
-        #     metrics=["binary_crossentropy", "auc"],
-        # )
         model.compile(
             MADGRAD(model.parameters(), lr=0.0001),
             "binary_crossentropy",

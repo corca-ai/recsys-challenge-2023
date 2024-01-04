@@ -402,11 +402,6 @@ def fit_and_predict(
             alpha_loss,
             metrics=["binary_crossentropy", "auc"],
         )
-        # model.compile(
-        #     Adam(model.parameters(), lr=0.0001, weight_decay=1e-5),
-        #     "binary_crossentropy",
-        #     metrics=["binary_crossentropy", "auc"],
-        # )
 
         es = EarlyStopping(
             monitor="val_binary_crossentropy",

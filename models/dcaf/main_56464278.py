@@ -284,14 +284,6 @@ for col, threshold in [
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
 
-# for col, threshold in [("f_2", 500), ("f_4", 1500), ("f_6", 15000), ("f_12", 100), ("f_13", 10), ("f_14", 100), ("f_15", 10), ("f_16", 3000), ("f_17", 100), ("f_18", 10), ("f_19", 100), ("f_20", 200), ("f_21", 100), ("f_22", 100)]:
-#     cnt = df[col].value_counts()[df[col].value_counts() <= threshold]
-#     less = cnt[cnt <= threshold].index
-#     df.loc[df[col].isin(less), col] = 123456789
-
-#     le = LabelEncoder()
-#     df[col] = le.fit_transform(df[col])
-
 for col in ["f_3", "f_5", "f_8", "f_9", "f_10", "f_11", "f_23", "f_25", "f_32"]:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])

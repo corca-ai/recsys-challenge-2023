@@ -206,22 +206,6 @@ def preprocess():
         train[f"f_{idx}"] = train[f"f_{idx}"].fillna(0)
         test[f"f_{idx}"] = test[f"f_{idx}"].fillna(0)
 
-    # for df in [train, test]:
-    #     df[["f_74_cat", "f_75_cat", "f_76_cat"]] = (
-    #         df[["f_74", "f_75", "f_76"]] / 0.0385640684536896
-    #     ).astype(int)
-
-    # data filtering
-    # for col in [f"f_{i}" for i in range(42, 80)]:
-    #     # Catch IQR outliers
-    #     q1 = train[col].quantile(0.05)
-    #     q3 = train[col].quantile(0.95)
-    #     iqr = q3 - q1
-    #     train.loc[(train[col] < q1 - 1.5 * iqr), col] = q1 - 1.5 * iqr
-    #     test.loc[(test[col] < q1 - 1.5 * iqr), col] = q1 - 1.5 * iqr
-    #     train.loc[(train[col] > q3 + 1.5 * iqr), col] = q3 + 1.5 * iqr
-    #     test.loc[(test[col] > q3 + 1.5 * iqr), col] = q3 + 1.5 * iqr
-
     for col in [f"f_{i}" for i in range(2, 42)]:
         less_f_6 = train[col].value_counts()[train[col].value_counts() < 10].index
         train.loc[train[col].isin(less_f_6), col] = -999
@@ -229,13 +213,7 @@ def preprocess():
 
     sparse_features = [
         f"f_{i}" for i in [5, 10, 14, 16, 20, 21, 22, 23, 25, 32, 37, 38, 39, 40, 41]
-    ]  # + ["f_71_cat", "f_72_cat", "f_73_cat"] + ["f_74_cat", "f_75_cat", "f_76_cat"] + ["f_77_cat", "f_78_cat", "f_79_cat"]
-    # ["f_" + str(i) for i in range(1, 42)] + [
-    #     "f_74_cat",
-    #     "f_75_cat",
-    #     "f_76_cat",
-    # ]
-    # dense_features = ["f_" + str(i) for i in range(42, 80)]
+    ]
     dense_features = [
         f"f_{i}"
         for i in [
@@ -335,10 +313,6 @@ def preprocess():
         alpha=20,
     )
     dense_features += feat_list
-    # train, test, _, feat_list = target_encoder(
-    #     train, test, cols=target_encode_cat_features, target_col="is_clicked", slice_recent_days=10
-    # )
-    # dense_features += feat_list
 
     frequency_encode_cat_features = (
         [f"f_{i}" for i in [2, 4, 6, 15, 19, 42]]
@@ -353,21 +327,6 @@ def preprocess():
         train, test, cols=frequency_encode_cat_features
     )
     dense_features += feat_list
-
-    # # cyclic encode f_9, f_11
-    # for col, max_val in zip(["f_9", "f_11"], [7, 24]):
-    #     sorted = df[col].value_counts().index[::-1]
-    #     sorted_dict = {k: v for v, k in enumerate(sorted)}
-    #     df[f"{col}"] = df[col].map(sorted_dict)
-
-    #     feat_name = f"{col}-sin"
-    #     df[feat_name] = np.sin(2 * np.pi * df[f"{col}"] / max_val)
-
-    #     feat_name = f"{col}-cos"
-    #     df[feat_name] = np.cos(2 * np.pi * df[f"{col}"] / max_val)
-
-    #     dense_features.append(f"{col}-sin")
-    #     dense_features.append(f"{col}-cos")
 
     # 1.Label Encoding for sparse features,and do simple Transformation for dense features
     for feat in tqdm(sparse_features):
