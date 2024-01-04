@@ -282,12 +282,8 @@ def preprocess():
 
     # concat feature
     for column_list in [
-        # ["f_71", "f_73", "f_72"],
-        # ["f_74", "f_76", "f_75"],
-        # ["f_77", "f_79", "f_78"],
         ["f_3", "f_4"],
         ["f_3", "f_20", "f_43", "f_66", "f_70"],
-        # ["f_40", "f_49", "f_48", "f_50"],
     ]:
         train, col_name = generate_cross_column(train, column_list)
         test, col_name = generate_cross_column(test, column_list)
