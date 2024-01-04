@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional, Tuple
 
 import category_encoders as ce
@@ -12,9 +13,10 @@ from pytorch_optimizer import MADGRAD
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
+from dotenv import load_dotenv
 
-# from ensemble import ensemble
-
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 def seed_everything(seed=42):
     import os
@@ -153,8 +155,9 @@ def frequency_encoder(
 
 
 def preprocess():
-    train = pd.read_parquet("/ssd/recsys2023/base/train.parquet")
-    test = pd.read_parquet("/ssd/recsys2023/base/test.parquet")
+    ## Load Data
+    train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+    test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
     train.loc[train["is_installed"] == 1, "is_clicked"] = 1
     condition = train["f_1"] == 66

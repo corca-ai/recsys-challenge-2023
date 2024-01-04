@@ -2,18 +2,23 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import os
 import random
 from typing import Dict, List, Tuple
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from lightgbm import early_stopping, log_evaluation
 from tqdm import tqdm
 
 # set seed
 seed = 42
 random.seed(seed)
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 non_null_con_dict = {
     "f_42": 0.0385640684536896,
@@ -106,9 +111,9 @@ def normalized_binary_cross_entropy(y_true, y_pred):
 
 
 ## Load Data
-train = pd.read_parquet("/ssd/recsys2023/base/train.parquet")
-train = train[train.f_1 != 60]  # KEY POINT
-test = pd.read_parquet("/ssd/recsys2023/base/test.parquet")
+train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+train = train[train.f_1 != 60]
+test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
 ## Preprocessing
 # Fill Null Cols

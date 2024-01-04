@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -10,7 +11,10 @@ from pytorch_optimizer import MADGRAD
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
+from dotenv import load_dotenv
 
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 def seed_everything(seed=42):
     import os
@@ -215,9 +219,9 @@ def loo_target_encoder(
 
 
 def preprocess():
-    train = pd.read_parquet("/ssd/recsys2023/base/train.parquet")
-    test = pd.read_parquet("/ssd/recsys2023/base/test.parquet")
-
+    ## Load Data
+    train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+    test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
     # train.loc[train["is_installed"] == 1, "is_clicked"] = 1
 
     f_51_mean = train.groupby(["f_4"])["f_51"].mean().reset_index()
