@@ -191,18 +191,6 @@ def main(te_columns):
     clf = lgb.LGBMClassifier(n_estimators=n_estimator, random_state=seed, n_jobs=4)
     clf.fit(train[columns], train["is_installed"], **fit_params)
 
-    # # feature importance
-    # feature_importance = pd.DataFrame(
-    #     {
-    #         "feature": columns,
-    #         "importance": clf.feature_importances_,
-    #     }
-    # )
-    # feature_importance = feature_importance.sort_values(
-    #     by="importance", ascending=False
-    # )
-    # feature_importance.to_csv("feature_importance.csv", index=False)
-
     # predict for validation
     y_pred = clf.predict_proba(val[columns])[:, 1]
     loss = log_loss(val["is_installed"], y_pred)

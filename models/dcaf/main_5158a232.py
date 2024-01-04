@@ -11,18 +11,6 @@ def frequency_encoder(
     cols,
     prefix_name: str = "FREQ",
 ):
-    """_summary_
-    1. Column의 그룹에 대한 값들의 frequency와 Column Total frequency를 계산
-    2. Local Frequency / Global Frequency
-    => Global frequency에 따라 Local frequency 값을 이용해 target에 따른 column 가중치 부여
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    Examples
-        feature_encoder = FeatureEncoder()
-        train, test = feature_encoder.frequency_encoder(train, test, COLS, plot=True)
-    """
     feat_list = []
     for col in tqdm(cols):
         # fe = train[col].value_counts() / len(train)
@@ -46,18 +34,6 @@ def target_encoder(
     alpha: float = 5.0,
     slice_recent_days: int = None,
 ):
-    """_summary_
-    1. 평균을 계산
-    2. 각 그룹에 대한 값들의 빈도와 평균을 계산
-    3. “smooth”한 평균을 계산
-    => smooth한 Global 평균에 따라 Local 평균 값을 Global 평균에 가까워지도록 함
-
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    """
-
     cut_day = (
         train.f_1.min()
         if slice_recent_days is None
@@ -520,28 +496,6 @@ from torch.utils.data import DataLoader, Dataset
 
 class TabularDataset(Dataset):
     def __init__(self, data, cat_cols=None, output_col=None):
-        """
-        Characterizes a Dataset for PyTorch
-
-        Parameters
-        ----------
-
-        data: pandas data frame
-          The data frame object for the input data. It must
-          contain all the continuous, categorical and the
-          output columns to be used.
-
-        cat_cols: List of strings
-          The names of the categorical columns in the data.
-          These columns will be passed through the embedding
-          layers in the model. These columns must be
-          label encoded beforehand.
-
-        output_col: string
-          The name of the output variable column in the data
-          provided.
-        """
-
         self.n = data.shape[0]
 
         if output_col:
@@ -565,15 +519,9 @@ class TabularDataset(Dataset):
             self.cat_X = np.zeros((self.__len__(), 1))
 
     def __len__(self):
-        """
-        Denotes the total number of samples.
-        """
         return self.n
 
     def __getitem__(self, idx):
-        """
-        Generates one sample of data.
-        """
         return [self.y[idx], self.cont_X[idx], self.cat_X[idx]]
 
 

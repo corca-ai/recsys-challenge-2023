@@ -187,18 +187,6 @@ def frequency_encoder(
     prefix_name: str = "FREQ",
     plot: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. Column의 그룹에 대한 값들의 frequency와 Column Total frequency를 계산
-    2. Local Frequency / Global Frequency
-    => Global frequency에 따라 Local frequency 값을 이용해 target에 따른 column 가중치 부여
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    Examples
-        feature_encoder = FeatureEncoder()
-        train, test = feature_encoder.frequency_encoder(train, test, COLS, plot=True)
-    """
     fe_maps = {}
     feature_list = []
     for col in tqdm(cols):

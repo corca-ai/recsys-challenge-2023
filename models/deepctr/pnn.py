@@ -63,18 +63,6 @@ def target_encoder(
     target_col: str = "is_clicked",
     slice_recent_days: int = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. 평균을 계산
-    2. 각 그룹에 대한 값들의 빈도와 평균을 계산
-    3. “smooth”한 평균을 계산
-    => smooth한 Global 평균에 따라 Local 평균 값을 Global 평균에 가까워지도록 함
-
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    """
-
     cut_day = (
         train.f_1.min()
         if slice_recent_days is None
@@ -120,18 +108,6 @@ def frequency_encoder(
     prefix_name: str = "FREQ",
     plot: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. Column의 그룹에 대한 값들의 frequency와 Column Total frequency를 계산
-    2. Local Frequency / Global Frequency
-    => Global frequency에 따라 Local frequency 값을 이용해 target에 따른 column 가중치 부여
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    Examples
-        feature_encoder = FeatureEncoder()
-        train, test = feature_encoder.frequency_encoder(train, test, COLS, plot=True)
-    """
     fe_maps = {}
     feat_list = []
     for col in tqdm(cols):
@@ -432,11 +408,6 @@ def fit_and_predict(
             l2_reg_embedding=0,
         )
 
-        # model.compile(
-        #     MADGRAD(model.parameters(), lr=0.0001),
-        #     # alpha_loss,
-        #     metrics=["binary_crossentropy", "auc"],
-        # )
         model.compile(
             MADGRAD(model.parameters(), lr=0.0001),
             "binary_crossentropy",

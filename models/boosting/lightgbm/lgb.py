@@ -232,18 +232,6 @@ for seed in [419]:
     clf = lgb.LGBMClassifier(n_estimators=200, random_state=seed, n_jobs=4)
     clf.fit(train[columns], train["is_installed"], **fit_params)
 
-    # # feature importance
-    # feature_importance = pd.DataFrame(
-    #     {
-    #         "feature": columns,
-    #         "importance": clf.feature_importances_,
-    #     }
-    # )
-    # feature_importance = feature_importance.sort_values(
-    #     by="importance", ascending=False
-    # )
-    # feature_importance.to_csv("feature_importance.csv", index=False)
-
     # predict for validation
     y_pred = clf.predict_proba(val[columns])[:, 1]
     score = normalized_binary_cross_entropy(val["is_installed"], y_pred)
