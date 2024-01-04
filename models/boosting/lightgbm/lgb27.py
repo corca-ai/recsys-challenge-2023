@@ -10,7 +10,6 @@ from typing import Dict, List, Tuple
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-from lightgbm import early_stopping, log_evaluation
 from tqdm import tqdm
 
 # set seed
@@ -456,7 +455,7 @@ def main():
     submission["is_installed"] = clf.predict_proba(test[columns])[:, 1]
 
     submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-        f"lgb27.csv",
+        "lgb27.csv",
         index=False,
         sep="\t",
     )

@@ -1,7 +1,6 @@
 import warnings
 
 import category_encoders as ce
-from sklearn.calibration import LabelEncoder
 from sklearn.metrics import log_loss
 
 warnings.filterwarnings("ignore")
@@ -12,7 +11,6 @@ from typing import Dict, List, Tuple
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-from lightgbm import early_stopping, log_evaluation
 from tqdm import tqdm
 
 # set seed
@@ -521,7 +519,7 @@ def main():
     submission["is_installed"] = clf.predict_proba(test[columns])[:, 1]
 
     submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-        f"lgb32.csv",
+        "lgb32.csv",
         index=False,
         sep="\t",
     )

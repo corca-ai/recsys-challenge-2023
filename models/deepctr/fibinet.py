@@ -2,12 +2,11 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import scipy as sp
 import torch
 from deepctr_torch.callbacks import EarlyStopping, ModelCheckpoint
 from deepctr_torch.inputs import DenseFeat, SparseFeat, get_feature_names
-from deepctr_torch.models import ESMM, AutoInt, DeepFM, FiBiNET
-from pytorch_optimizer import MADGRAD, CosineAnnealingWarmRestarts
+from deepctr_torch.models import FiBiNET
+from pytorch_optimizer import MADGRAD
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
@@ -43,7 +42,7 @@ def generate_cross_column(
     # df[col_name] = df[col_name].astype("category")
 
     if concat_features is not None:
-        if col_name not in concat_features:x
+        if col_name not in concat_features:
             concat_features.append(col_name)
         print(f"Concat features: {concat_features}")
     print(f"Generated {col_name}")
@@ -554,7 +553,7 @@ def fit_and_predict(
         submission["row_id"] = submission["row_id"] - 4000000
         # evaluate
         submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-            f"./fibinet.csv",
+            "./fibinet.csv",
             index=False,
             sep="\t",
         )

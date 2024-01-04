@@ -252,7 +252,7 @@ for seed in [419]:
     df["is_installed"] = clf.predict_proba(test[columns])[:, 1]
     submission = pd.concat((submission, df))
     submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-        f"lgb.csv",
+        "lgb.csv",
         index=False,
         sep="\t",
     )

@@ -5,7 +5,7 @@ from sklearn.metrics import log_loss
 warnings.filterwarnings("ignore")
 
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import lightgbm as lgb
 import numpy as np
@@ -213,7 +213,7 @@ def main(te_columns):
 
     te_name = "".join([col[2:5] for col in te_columns])
     submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-        f"lgb15.csv",
+        "lgb15.csv",
         index=False,
         sep="\t",
     )

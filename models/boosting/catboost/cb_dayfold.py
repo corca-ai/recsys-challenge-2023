@@ -8,8 +8,6 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier
-from sklearn.metrics import log_loss
-from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
 # set seed
@@ -264,5 +262,5 @@ submission["is_installed"] = sigmoid_ensemble(
     [0.5, 0.5], submission[[f"date{i}" for i in [50, 65]]]
 )
 submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-    f".cb_dayfold.csv", index=False, sep="\t"
+    ".cb_dayfold.csv", index=False, sep="\t"
 )

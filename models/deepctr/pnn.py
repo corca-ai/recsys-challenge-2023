@@ -3,13 +3,11 @@ from typing import Dict, List, Optional, Tuple
 import category_encoders as ce
 import numpy as np
 import pandas as pd
-import scipy as sp
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from deepctr_torch.callbacks import EarlyStopping, ModelCheckpoint
 from deepctr_torch.inputs import DenseFeat, SparseFeat, get_feature_names
-from deepctr_torch.models import ESMM, MMOE, PNN, DeepFM
+from deepctr_torch.models import PNN
 from pytorch_optimizer import MADGRAD
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
