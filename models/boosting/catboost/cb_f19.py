@@ -21,6 +21,7 @@ np.random.seed(seed)
 load_dotenv()
 DATA_PATH = os.getenv("DATA_PATH")
 
+
 def target_encoder(
     train: pd.DataFrame,
     val: pd.DataFrame,

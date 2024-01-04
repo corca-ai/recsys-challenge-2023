@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 DATA_PATH = os.getenv("DATA_PATH")
 
+
 def seed_everything(seed=42):
     import os
     import random
