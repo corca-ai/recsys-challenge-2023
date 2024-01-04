@@ -491,10 +491,6 @@ if __name__ == "__main__":
     print(test)
     import os
 
-    # os.makedirs(f"")
     os.makedirs(f"submissions/{run_id}", exist_ok=True)
-
-    # train = pd.read_parquet("featured_train.parquet")
-    # test = pd.read_parquet("featured_test.parquet")
 
     fit_and_predict(train, test, linear_feature_columns, dnn_feature_columns, mode=mode)

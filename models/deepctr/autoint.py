@@ -435,7 +435,7 @@ def fit_and_predict(
 
         submission["row_id"] = submission["row_id"] - 4000000
         # evaluate
-        filepath = f"./notebooks/jhkim/submission/ai-{i+45}.csv"
+        filepath = f"./ai-{i+45}.csv"
         filepaths.append(filepath)
         submission[["row_id", "is_clicked", "is_installed"]].to_csv(
             "autoint.csv", index=False, sep="\t"
@@ -466,9 +466,6 @@ if __name__ == "__main__":
         import os
 
         os.makedirs(f"submissions/{run_id}", exist_ok=True)
-
-        # train = pd.read_parquet("featured_train.parquet")
-        # test = pd.read_parquet("featured_test.parquet")
 
         fit_and_predict(
             train, test, linear_feature_columns, dnn_feature_columns, mode=mode
