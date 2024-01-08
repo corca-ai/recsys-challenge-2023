@@ -39,8 +39,10 @@ def ensemble(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", nargs='+', help="input files (comma separated)")
-    parser.add_argument("-w", "--weight", nargs='+', help="weight", default=None)
+    parser.add_argument(
+        "-i", "--input", nargs="+", help="input files (comma separated)"
+    )
+    parser.add_argument("-w", "--weight", nargs="+", help="weight", default=None)
     parser.add_argument(
         "-m",
         "--method",

@@ -1,20 +1,23 @@
+import os
 from typing import Dict, List, Optional, Tuple
 
 import category_encoders as ce
 import numpy as np
 import pandas as pd
-import scipy as sp
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from deepctr_torch.callbacks import EarlyStopping, ModelCheckpoint
 from deepctr_torch.inputs import DenseFeat, SparseFeat, get_feature_names
-from deepctr_torch.models import ESMM, MMOE, DeepFM
+from deepctr_torch.models import MMOE
 from ensemble import ensemble
 from pytorch_optimizer import MADGRAD
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 
 def seed_everything(seed=42):
@@ -26,6 +29,7 @@ def seed_everything(seed=42):
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
+
 
 def generate_cross_column(
     df: pd.DataFrame,
@@ -61,18 +65,6 @@ def target_encoder(
     target_col: str = "is_clicked",
     slice_recent_days: int = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. 평균을 계산
-    2. 각 그룹에 대한 값들의 빈도와 평균을 계산
-    3. “smooth”한 평균을 계산
-    => smooth한 Global 평균에 따라 Local 평균 값을 Global 평균에 가까워지도록 함
-
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    """
-
     cut_day = (
         train.f_1.min()
         if slice_recent_days is None
@@ -86,17 +78,25 @@ def target_encoder(
     encoder = ce.CatBoostEncoder(cols=cols, verbose=1, a=5)
     encoder = encoder.fit(train_1[cols], train_1[target_col])
 
-    train_transformed = encoder.transform(train[cols]).add_prefix(prefix_name).add_suffix(f"_{target_col}")
-    train = pd.concat([
-        train,
-        train_transformed
-    ], axis=1)
+    train_transformed = (
+        encoder.transform(train[cols])
+        .add_prefix(prefix_name)
+        .add_suffix(f"_{target_col}")
+    )
+    train = pd.concat([train, train_transformed], axis=1)
 
-    test_transformed = encoder.transform(test[cols]).add_prefix(prefix_name).add_suffix(f"_{target_col}")
-    test = pd.concat([
-        test,
-        test_transformed,
-    ], axis=1)
+    test_transformed = (
+        encoder.transform(test[cols])
+        .add_prefix(prefix_name)
+        .add_suffix(f"_{target_col}")
+    )
+    test = pd.concat(
+        [
+            test,
+            test_transformed,
+        ],
+        axis=1,
+    )
 
     feat_list = test_transformed.columns.tolist()
 
@@ -110,18 +110,6 @@ def frequency_encoder(
     prefix_name: str = "FREQ",
     plot: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. Column의 그룹에 대한 값들의 frequency와 Column Total frequency를 계산
-    2. Local Frequency / Global Frequency
-    => Global frequency에 따라 Local frequency 값을 이용해 target에 따른 column 가중치 부여
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    Examples
-        feature_encoder = FeatureEncoder()
-        train, test = feature_encoder.frequency_encoder(train, test, COLS, plot=True)
-    """
     fe_maps = {}
     feat_list = []
     for col in tqdm(cols):
@@ -145,8 +133,9 @@ def frequency_encoder(
 
 
 def preprocess():
-    train = pd.read_parquet("../../../RecSys2023/train.parquet")
-    test = pd.read_parquet("../../../RecSys2023/test.parquet")
+    ## Load Data
+    train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+    test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
     train.loc[train["is_installed"] == 1, "is_clicked"] = 1
 
@@ -170,7 +159,33 @@ def preprocess():
         ).astype(int)
 
     # data filtering
-    for col in [f"f_{i}" for i in [42, 43, 51, 52, 54, 55, 56, 57, 58, 59, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 72, 73]]:
+    for col in [
+        f"f_{i}"
+        for i in [
+            42,
+            43,
+            51,
+            52,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            72,
+            73,
+        ]
+    ]:
         # Catch IQR outliers
         q1 = train[col].quantile(0.25)
         q3 = train[col].quantile(0.75)
@@ -188,18 +203,23 @@ def preprocess():
         train.loc[(train[col] > q3 + iqr * 1.5), col] = q3 + iqr * 1.5
         test.loc[(test[col] > q3 + iqr * 1.5), col] = q3 + iqr * 1.5
 
-
     less_dict = {
         # "f_2": 194,
         # "f_4": 265,
     }
 
     for col in [f"f_{i}" for i in range(2, 42)]:
-        less_f_6 = train[col].value_counts()[train[col].value_counts() < less_dict.get(col, 10)].index
+        less_f_6 = (
+            train[col]
+            .value_counts()[train[col].value_counts() < less_dict.get(col, 10)]
+            .index
+        )
         train.loc[train[col].isin(less_f_6), col] = -999
         test.loc[test[col].isin(less_f_6), col] = -999
 
-    sparse_features = [f"f_{i}" for i in [2, 4, 6, 8, 10, 12, 14, 15, 16, 17, 18, 19, 42]] + [
+    sparse_features = [
+        f"f_{i}" for i in [2, 4, 6, 8, 10, 12, 14, 15, 16, 17, 18, 19, 42]
+    ] + [
         "f_74_cat",
         "f_75_cat",
         "f_76_cat",
@@ -236,29 +256,28 @@ def preprocess():
 
     # concat feature
     for column_list in [
-        # ["f_71", "f_73", "f_72"],
-        # ["f_74", "f_76", "f_75"], 
-        # ["f_3", "f_20", "f_43", "f_66", "f_70"],
         ["f_3", "f_4"],
     ]:
-        train, col_name = generate_cross_column(
-            train, column_list
-        )
-        test, col_name = generate_cross_column(
-            test, column_list
-        )
+        train, col_name = generate_cross_column(train, column_list)
+        test, col_name = generate_cross_column(test, column_list)
         sparse_features.append(col_name)
 
     f_2_day = train.groupby("f_2")["f_1"].min().to_dict()
 
     train["f_2_day"] = train["f_1"] - train["f_2"].map(f_2_day)
-    test["f_2_day"] = test["f_1"] - test["f_2"].map(f_2_day).fillna(train["f_1"].max() + 1)
+    test["f_2_day"] = test["f_1"] - test["f_2"].map(f_2_day).fillna(
+        train["f_1"].max() + 1
+    )
 
     train["f_2_day_more_than_10"] = (train["f_2_day"] > 10).astype(int)
     test["f_2_day_more_than_10"] = (test["f_2_day"] > 10).astype(int)
     # sparse_features.append("f_2_day_more_than_10")
 
-    cat_features = [f"f_{i}" for i in [2, 4, 5, 6, 10, 12, 14, 15, 42, 74]] + ["f_3_4"] + ["f_2_day"]
+    cat_features = (
+        [f"f_{i}" for i in [2, 4, 5, 6, 10, 12, 14, 15, 42, 74]]
+        + ["f_3_4"]
+        + ["f_2_day"]
+    )
 
     cat_features = [feat for feat in cat_features if feat not in remove_columns]
     train, test, _, feat_list = target_encoder(
@@ -273,11 +292,8 @@ def preprocess():
     freq_features = [f"f_{i}" for i in [2, 4, 6, 19, 42]] + ["f_3_4"]
     freq_features = [feat for feat in freq_features if feat not in remove_columns]
 
-    train, test, _, feat_list = frequency_encoder(
-        train, test, cols=freq_features
-    )
+    train, test, _, feat_list = frequency_encoder(train, test, cols=freq_features)
     dense_features += feat_list
-
 
     # 1.Label Encoding for sparse features,and do simple Transformation for dense features
     for feat in tqdm(sparse_features):
@@ -300,8 +316,7 @@ def preprocess():
     # 2.count #unique features for each sparse field,and record dense feature field name
 
     fixlen_feature_columns = [
-        SparseFeat(feat, train[feat].nunique() + 1)
-        for feat in sparse_features
+        SparseFeat(feat, train[feat].nunique() + 1) for feat in sparse_features
     ] + [
         DenseFeat(
             feat,
@@ -320,6 +335,7 @@ def preprocess():
         dnn_feature_columns,
     )
 
+
 def normalized_binary_cross_entropy_loss(
     y_pred: torch.FloatTensor, y_true: torch.LongTensor, reduction="mean"
 ):
@@ -328,10 +344,15 @@ def normalized_binary_cross_entropy_loss(
     loss = -loss / (p * torch.log(p) + (1 - p) * torch.log(1 - p))
     return loss
 
+
 def alpha_loss(y_pred, y, reduction):
     alpha = 0.5
-    ctr_loss = normalized_binary_cross_entropy_loss(y_pred[:, 0], y[:, 0], reduction=reduction)
-    ctcvr_loss = normalized_binary_cross_entropy_loss(y_pred[:, 1], y[:, 1], reduction=reduction)
+    ctr_loss = normalized_binary_cross_entropy_loss(
+        y_pred[:, 0], y[:, 0], reduction=reduction
+    )
+    ctcvr_loss = normalized_binary_cross_entropy_loss(
+        y_pred[:, 1], y[:, 1], reduction=reduction
+    )
     return ctr_loss * alpha + ctcvr_loss * (1 - alpha)
 
 
@@ -357,7 +378,6 @@ def fit_and_predict(
 
     filepaths = []
 
-
     for i, (train_index, valid_index) in enumerate(kf.split(train)):
         train_fold = train.iloc[train_index]
         valid_fold = train.iloc[valid_index]
@@ -370,8 +390,8 @@ def fit_and_predict(
             device=device,
             dnn_activation="prelu",
             dnn_use_bn=True,
-            l2_reg_linear = 0,
-            l2_reg_embedding = 0,
+            l2_reg_linear=0,
+            l2_reg_embedding=0,
         )
 
         model.compile(
@@ -379,11 +399,6 @@ def fit_and_predict(
             alpha_loss,
             metrics=["binary_crossentropy", "auc"],
         )
-        # model.compile(
-        #     Adam(model.parameters(), lr=0.0001, weight_decay=1e-5),
-        #     "binary_crossentropy",
-        #     metrics=["binary_crossentropy", "auc"],
-        # )
 
         es = EarlyStopping(
             monitor="val_binary_crossentropy",
@@ -443,10 +458,11 @@ def fit_and_predict(
         filepaths,
         None,
         "sigmoid",
-        f"file1.csv",
+        "file1.csv",
         "row_id",
         "is_installed",
     )
+
 
 def main():
     seed_everything(60)
@@ -458,9 +474,11 @@ def main():
     train, test, linear_feature_columns, dnn_feature_columns = preprocess()
 
     import os
+
     os.makedirs(f"submissions/{run_id}", exist_ok=True)
 
     fit_and_predict(train, test, linear_feature_columns, dnn_feature_columns, mode=mode)
+
 
 if __name__ == "__main__":
     main()

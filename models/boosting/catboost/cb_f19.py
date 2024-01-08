@@ -2,11 +2,13 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import os
 import random
 from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from catboost import CatBoostClassifier
 from sklearn.metrics import log_loss
 from tqdm import tqdm
@@ -15,6 +17,9 @@ from tqdm import tqdm
 seed = 269
 random.seed(seed)
 np.random.seed(seed)
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 
 def target_encoder(
@@ -77,9 +82,9 @@ def normalized_binary_cross_entropy(y_true, y_pred):
 
 
 ## Load Data
-train = pd.read_parquet("/ssd/recsys2023/base/train.parquet")
+train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
 train = train[train.f_1 != 60]
-test = pd.read_parquet("/ssd/recsys2023/base/test.parquet")
+test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
 ## Preprocessing
 # Fill Null Cols

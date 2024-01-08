@@ -1,9 +1,6 @@
 import argparse
-import random
-from math import e
 from typing import List, Optional
 
-import numpy as np
 import pandas as pd
 
 

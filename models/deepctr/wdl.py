@@ -1,16 +1,20 @@
+import os
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import scipy as sp
 import torch
 from deepctr_torch.callbacks import EarlyStopping, ModelCheckpoint
 from deepctr_torch.inputs import DenseFeat, SparseFeat, get_feature_names
-from deepctr_torch.models import ESMM, WDL, AutoInt, DeepFM
-from pytorch_optimizer import MADGRAD, CosineAnnealingWarmRestarts
+from deepctr_torch.models import WDL
+from pytorch_optimizer import MADGRAD
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 
 def seed_everything(seed=42):
@@ -43,7 +47,7 @@ def generate_cross_column(
     # df[col_name] = df[col_name].astype("category")
 
     if concat_features is not None:
-        if col_name not in concat_features:x
+        if col_name not in concat_features:
             concat_features.append(col_name)
         print(f"Concat features: {concat_features}")
     print(f"Generated {col_name}")
@@ -59,16 +63,6 @@ def target_encoder(
     alpha: float = 5.0,
     slice_recent_days: int = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. 평균을 계산
-    2. 각 그룹에 대한 값들의 빈도와 평균을 계산
-    3. “smooth”한 평균을 계산
-    => smooth한 Global 평균에 따라 Local 평균 값을 Global 평균에 가까워지도록 함
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    """
 
     cut_day = (
         train.f_1.min()
@@ -118,18 +112,6 @@ def frequency_encoder(
     prefix_name: str = "FREQ",
     plot: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. Column의 그룹에 대한 값들의 frequency와 Column Total frequency를 계산
-    2. Local Frequency / Global Frequency
-    => Global frequency에 따라 Local frequency 값을 이용해 target에 따른 column 가중치 부여
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    Examples
-        feature_encoder = FeatureEncoder()
-        train, test = feature_encoder.frequency_encoder(train, test, COLS, plot=True)
-    """
     fe_maps = {}
     feat_list = []
     for col in tqdm(cols):
@@ -161,17 +143,6 @@ def loo_target_encoder(
     alpha: float = 5.0,
     slice_recent_days: int = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. 평균을 계산
-    2. 각 그룹에 대한 값들의 빈도와 평균을 계산
-    3. “smooth”한 평균을 계산
-    => smooth한 Global 평균에 따라 Local 평균 값을 Global 평균에 가까워지도록 함
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    """
-
     cut_day = (
         train.f_1.min()
         if slice_recent_days is None
@@ -216,9 +187,9 @@ def loo_target_encoder(
 
 
 def preprocess():
-    train = pd.read_parquet("/ssd/recsys2023/base/train.parquet")
-    test = pd.read_parquet("/ssd/recsys2023/base/test.parquet")
-
+    ## Load Data
+    train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+    test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
     # train.loc[train["is_installed"] == 1, "is_clicked"] = 1
 
     f_51_mean = train.groupby(["f_4"])["f_51"].mean().reset_index()
@@ -235,22 +206,6 @@ def preprocess():
         train[f"f_{idx}"] = train[f"f_{idx}"].fillna(0)
         test[f"f_{idx}"] = test[f"f_{idx}"].fillna(0)
 
-    # for df in [train, test]:
-    #     df[["f_74_cat", "f_75_cat", "f_76_cat"]] = (
-    #         df[["f_74", "f_75", "f_76"]] / 0.0385640684536896
-    #     ).astype(int)
-
-    # data filtering
-    # for col in [f"f_{i}" for i in range(42, 80)]:
-    #     # Catch IQR outliers
-    #     q1 = train[col].quantile(0.05)
-    #     q3 = train[col].quantile(0.95)
-    #     iqr = q3 - q1
-    #     train.loc[(train[col] < q1 - 1.5 * iqr), col] = q1 - 1.5 * iqr
-    #     test.loc[(test[col] < q1 - 1.5 * iqr), col] = q1 - 1.5 * iqr
-    #     train.loc[(train[col] > q3 + 1.5 * iqr), col] = q3 + 1.5 * iqr
-    #     test.loc[(test[col] > q3 + 1.5 * iqr), col] = q3 + 1.5 * iqr
-
     for col in [f"f_{i}" for i in range(2, 42)]:
         less_f_6 = train[col].value_counts()[train[col].value_counts() < 10].index
         train.loc[train[col].isin(less_f_6), col] = -999
@@ -258,13 +213,7 @@ def preprocess():
 
     sparse_features = [
         f"f_{i}" for i in [5, 10, 14, 16, 20, 21, 22, 23, 25, 32, 37, 38, 39, 40, 41]
-    ]  # + ["f_71_cat", "f_72_cat", "f_73_cat"] + ["f_74_cat", "f_75_cat", "f_76_cat"] + ["f_77_cat", "f_78_cat", "f_79_cat"]
-    # ["f_" + str(i) for i in range(1, 42)] + [
-    #     "f_74_cat",
-    #     "f_75_cat",
-    #     "f_76_cat",
-    # ]
-    # dense_features = ["f_" + str(i) for i in range(42, 80)]
+    ]
     dense_features = [
         f"f_{i}"
         for i in [
@@ -333,12 +282,8 @@ def preprocess():
 
     # concat feature
     for column_list in [
-        # ["f_71", "f_73", "f_72"],
-        # ["f_74", "f_76", "f_75"],
-        # ["f_77", "f_79", "f_78"],
         ["f_3", "f_4"],
         ["f_3", "f_20", "f_43", "f_66", "f_70"],
-        # ["f_40", "f_49", "f_48", "f_50"],
     ]:
         train, col_name = generate_cross_column(train, column_list)
         test, col_name = generate_cross_column(test, column_list)
@@ -364,10 +309,6 @@ def preprocess():
         alpha=20,
     )
     dense_features += feat_list
-    # train, test, _, feat_list = target_encoder(
-    #     train, test, cols=target_encode_cat_features, target_col="is_clicked", slice_recent_days=10
-    # )
-    # dense_features += feat_list
 
     frequency_encode_cat_features = (
         [f"f_{i}" for i in [2, 4, 6, 15, 19, 42]]
@@ -382,21 +323,6 @@ def preprocess():
         train, test, cols=frequency_encode_cat_features
     )
     dense_features += feat_list
-
-    # # cyclic encode f_9, f_11
-    # for col, max_val in zip(["f_9", "f_11"], [7, 24]):
-    #     sorted = df[col].value_counts().index[::-1]
-    #     sorted_dict = {k: v for v, k in enumerate(sorted)}
-    #     df[f"{col}"] = df[col].map(sorted_dict)
-
-    #     feat_name = f"{col}-sin"
-    #     df[feat_name] = np.sin(2 * np.pi * df[f"{col}"] / max_val)
-
-    #     feat_name = f"{col}-cos"
-    #     df[feat_name] = np.cos(2 * np.pi * df[f"{col}"] / max_val)
-
-    #     dense_features.append(f"{col}-sin")
-    #     dense_features.append(f"{col}-cos")
 
     # 1.Label Encoding for sparse features,and do simple Transformation for dense features
     for feat in tqdm(sparse_features):
@@ -471,20 +397,6 @@ def fit_and_predict(
         train_model_input = {name: train_fold[name] for name in feature_names}
         valid_model_input = {name: valid_fold[name] for name in feature_names}
         test_model_input = {name: test[name] for name in feature_names}
-        # model = AutoInt(
-        #     dnn_hidden_units=[4, 4],
-        #     linear_feature_columns=linear_feature_columns,
-        #     dnn_feature_columns=dnn_feature_columns,
-        #     device=device,
-        #     dnn_activation="prelu",
-        #     dnn_use_bn=False,
-        #     l2_reg_dnn=0,
-        #     l2_reg_embedding=0,
-        #     dnn_dropout=0,
-        #     att_head_num=2,
-        #     att_layer_num=1,
-        #     seed=10,
-        # )
 
         model = WDL(
             dnn_hidden_units=[16, 4],
@@ -579,10 +491,6 @@ if __name__ == "__main__":
     print(test)
     import os
 
-    # os.makedirs(f"")
     os.makedirs(f"submissions/{run_id}", exist_ok=True)
-
-    # train = pd.read_parquet("featured_train.parquet")
-    # test = pd.read_parquet("featured_test.parquet")
 
     fit_and_predict(train, test, linear_feature_columns, dnn_feature_columns, mode=mode)

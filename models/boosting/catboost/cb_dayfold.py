@@ -2,19 +2,22 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import os
 import random
 from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from catboost import CatBoostClassifier
-from sklearn.metrics import log_loss
-from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
 # set seed
 seed = 269
 random.seed(seed)
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 
 def target_encoder(
@@ -89,8 +92,8 @@ def sigmoid_ensemble(weights, model_results):
 
 
 ## Load Data
-train = pd.read_parquet("/ssd/recsys2023/base/train.parquet")
-test = pd.read_parquet("/ssd/recsys2023/base/test.parquet")
+train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
 ## Preprocessing
 # Fill Null Cols
@@ -264,5 +267,5 @@ submission["is_installed"] = sigmoid_ensemble(
     [0.5, 0.5], submission[[f"date{i}" for i in [50, 65]]]
 )
 submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-    f".cb_dayfold.csv", index=False, sep="\t"
+    ".cb_dayfold.csv", index=False, sep="\t"
 )

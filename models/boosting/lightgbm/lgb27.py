@@ -1,52 +1,26 @@
 import warnings
 
-from sklearn.metrics import log_loss
-
 warnings.filterwarnings("ignore")
 
+import os
 import random
 from typing import Dict, List, Tuple
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-from lightgbm import early_stopping, log_evaluation
+from dotenv import load_dotenv
+from sklearn.metrics import log_loss
 from tqdm import tqdm
+
+from common_denominator import non_null_con_dict
 
 # set seed
 seed = 42
 random.seed(seed)
 
-
-non_null_con_dict = {
-    "f_42": 0.0385640684536896,
-    "f_44": 0.5711214712545996,
-    "f_45": 0.5711214712545996,
-    "f_46": 0.5711214712545996,
-    "f_47": 0.5711214712545996,
-    "f_48": 0.5711214712545996,
-    "f_49": 0.5711214712545996,
-    "f_50": 0.5711214712545996,
-    "f_52": 0.0385640684536896,
-    "f_53": 0.0385640684536896,
-    "f_54": 0.0385640684536896,
-    "f_55": 0.0385640684536896,
-    "f_56": 0.0385640684536896,
-    "f_57": 0.0385640684536896,
-    "f_60": 8.07946038858253,
-    "f_61": 0.1478508992888889,
-    "f_62": 0.1292997091990755,
-    "f_63": 0.3552210926047521,
-    "f_71": 0.5711214712545996,
-    "f_72": 0.5711214712545996,
-    "f_73": 0.5711214712545996,
-    "f_74": 0.0385640684536896,
-    "f_75": 0.0385640684536896,
-    "f_76": 0.0385640684536896,
-    "f_77": 37.38457512430372,
-    "f_78": 37.38457512430372,
-    "f_79": 37.38457512430372,
-}
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 
 def bin_encoder(
@@ -184,18 +158,6 @@ def frequency_encoder(
     prefix_name: str = "FREQ",
     plot: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict, List[str]]:
-    """_summary_
-    1. Column의 그룹에 대한 값들의 frequency와 Column Total frequency를 계산
-    2. Local Frequency / Global Frequency
-    => Global frequency에 따라 Local frequency 값을 이용해 target에 따른 column 가중치 부여
-    Returns
-    -------
-    _type_
-        Tuple[pd.DataFrame, pd.DataFrame]
-    Examples
-        feature_encoder = FeatureEncoder()
-        train, test = feature_encoder.frequency_encoder(train, test, COLS, plot=True)
-    """
     fe_maps = {}
     feature_list = []
     for col in tqdm(cols):
@@ -284,9 +246,9 @@ def normalized_binary_cross_entropy(y_true, y_pred):
 
 def main():
     ## Load Data
-    train = pd.read_parquet("~/base/train.parquet")
+    train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
     train = train[train.f_1 != 60]  # KEY POINT
-    test = pd.read_parquet("~/base/test.parquet")
+    test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
     ## Preprocessing
     # Fill Null Cols
@@ -316,18 +278,11 @@ def main():
 
     bin_columns = ["f_52", "f_53", "f_54", "f_55", "f_56", "f_57"]
     combine_columns = [
-        # ["f_3", "f_4"],
-        # ["f_8", "f_13", "f_14", "f_15"],
         ["f_44", "f_45", "f_46", "f_47"],
         ["f_48", "f_49", "f_50"],
-        # ["f_52", "f_53", "f_54"],
-        # ["f_55", "f_56", "f_57"],
-        # ["f_71", "f_72", "f_73"],
-        # ["f_74", "f_75", "f_76"],
-        # ["f_77", "f_78", "f_79"],
     ]
     nuniq_columns = []
-    group_columns = []  # ["f_6", "f_15", "f_18"]
+    group_columns = []
     te_columns = [
         "f_2",
         "f_3",
@@ -342,7 +297,7 @@ def main():
         "f_75",
         "f_76",
     ]
-    freq_columns = []  # f_2, f_4, f_6, f_19, f_42
+    freq_columns = []
     remove_columns = [
         "f_7",
         "f_8",
@@ -456,7 +411,7 @@ def main():
     submission["is_installed"] = clf.predict_proba(test[columns])[:, 1]
 
     submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-        f"lgb27.csv",
+        "lgb27.csv",
         index=False,
         sep="\t",
     )

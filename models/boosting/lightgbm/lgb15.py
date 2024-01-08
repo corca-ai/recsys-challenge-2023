@@ -1,51 +1,27 @@
 import warnings
 
-from sklearn.metrics import log_loss
-
 warnings.filterwarnings("ignore")
 
+import os
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
+from sklearn.metrics import log_loss
 from lightgbm import early_stopping, log_evaluation
 from tqdm import tqdm
+
+from common_denominator import non_null_con_dict
 
 # set seed
 seed = 42
 random.seed(seed)
 
-non_null_con_dict = {
-    "f_42": 0.0385640684536896,
-    "f_44": 0.5711214712545996,
-    "f_45": 0.5711214712545996,
-    "f_46": 0.5711214712545996,
-    "f_47": 0.5711214712545996,
-    "f_48": 0.5711214712545996,
-    "f_49": 0.5711214712545996,
-    "f_50": 0.5711214712545996,
-    "f_52": 0.0385640684536896,
-    "f_53": 0.0385640684536896,
-    "f_54": 0.0385640684536896,
-    "f_55": 0.0385640684536896,
-    "f_56": 0.0385640684536896,
-    "f_57": 0.0385640684536896,
-    "f_60": 8.07946038858253,
-    "f_61": 0.1478508992888889,
-    "f_62": 0.1292997091990755,
-    "f_63": 0.3552210926047521,
-    "f_71": 0.5711214712545996,
-    "f_72": 0.5711214712545996,
-    "f_73": 0.5711214712545996,
-    "f_74": 0.0385640684536896,
-    "f_75": 0.0385640684536896,
-    "f_76": 0.0385640684536896,
-    "f_77": 37.38457512430372,
-    "f_78": 37.38457512430372,
-    "f_79": 37.38457512430372,
-}
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 
 def target_encoder(
@@ -109,9 +85,9 @@ def normalized_binary_cross_entropy(y_true, y_pred):
 
 def main(te_columns):
     ## Load Data
-    train = pd.read_parquet("~/base/train.parquet")
-    train = train[train.f_1 != 60]  # KEY POINT
-    test = pd.read_parquet("~/base/test.parquet")
+    train = pd.read_parquet(os.path.join(DATA_PATH, "train.parquet"))
+    train = train[train.f_1 != 60]
+    test = pd.read_parquet(os.path.join(DATA_PATH, "test.parquet"))
 
     ## Preprocessing
     # Fill Null Cols
@@ -187,18 +163,6 @@ def main(te_columns):
     clf = lgb.LGBMClassifier(n_estimators=n_estimator, random_state=seed, n_jobs=4)
     clf.fit(train[columns], train["is_installed"], **fit_params)
 
-    # # feature importance
-    # feature_importance = pd.DataFrame(
-    #     {
-    #         "feature": columns,
-    #         "importance": clf.feature_importances_,
-    #     }
-    # )
-    # feature_importance = feature_importance.sort_values(
-    #     by="importance", ascending=False
-    # )
-    # feature_importance.to_csv("feature_importance.csv", index=False)
-
     # predict for validation
     y_pred = clf.predict_proba(val[columns])[:, 1]
     loss = log_loss(val["is_installed"], y_pred)
@@ -213,7 +177,7 @@ def main(te_columns):
 
     te_name = "".join([col[2:5] for col in te_columns])
     submission[["row_id", "is_clicked", "is_installed"]].to_csv(
-        f"lgb15.csv",
+        "lgb15.csv",
         index=False,
         sep="\t",
     )
